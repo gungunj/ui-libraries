@@ -102,7 +102,7 @@
                 <tbody ref="virtual">
                     <template v-if="(!currentLoading && !currentError && !currentEmpty || pageable === 'auto-more' || pageable === 'load-more') && currentData && currentData.length">
                         <template v-for="(item, rowIndex) in virtualList">
-                            <tr :key="getKey(item, rowIndex)" :class="[$style.row, ($env.VUE_APP_DESIGNER && rowIndex !== 0) ? $style.trmask : '']" :color="item.rowColor" :selected="selectable && selectedItem === item"
+                            <tr :key="getKey(item, rowIndex)" :class="[$style.row]" :color="item.rowColor" :selected="selectable && selectedItem === item"
                             v-if="item.display !== 'none'"
                             :draggable="rowDraggable && item.draggable || undefined"
                             :dragging="isDragging(item)"
@@ -130,7 +130,7 @@
                                         :first-right-fixed="isFirstRightFixed(columnVM, columnIndex, visibleColumnVMs)"
                                         :shadow="(isLastLeftFixed(columnVM, columnIndex, visibleColumnVMs)) || (isFirstRightFixed(columnVM, columnIndex, visibleColumnVMs))"
                                         :disabled="columnVM.currentHidden">
-                                        <!-- <div :class="$style.tdmask" v-if="rowIndex !== 0"></div> -->
+                                        <div :class="$style.tdmask" v-if="rowIndex !== 0"></div>
                                         <!--可视化占据的虚拟填充区域-->
                                         <div vusion-slot-name="cell" :plus-empty="typeCheck(columnVM.type) ? false : columnVM.$attrs['plus-empty']">
                                             <!-- type === 'index' -->
@@ -3808,28 +3808,14 @@ content: "\e679";
 
 .indent {}
 
-.trmask {
-    position: relative;
-}
-.trmask::after {
-    content: '';
-    display: block;
-    position: absolute;
-    top: 0;
-    right: 0;
-    left: 0;
-    bottom: 0;
-    background: rgba(255,255,255,0.8);
-    z-index: 999;
-}
-
 .tdmask {
     position: absolute;
     top: 0;
     right: 0;
     left: 0;
-    bottom: 0;
-    background: rgba(255,255,255,0.8);
+    bottom: -1px;
+    background: white;
+    opacity: 0.8;
     z-index: 999;
 }
 .spinner {
