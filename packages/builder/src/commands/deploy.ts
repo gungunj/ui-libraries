@@ -92,11 +92,6 @@ export default (rootPath, { images, ...commandArgs }) => {
 
   execSync(concatCommand('npx lcap deploy dist-theme', lcapCliConfig));
 
-  const manifestPath = path.resolve(rootPath, 'manifest.json');
-  if (fs.existsSync(manifestPath)) {
-    execSync(concatCommand('npx lcap deploy manifest.json', lcapCliConfig));
-  }
-
   if (images) {
     deployImages(rootPath, lcapCliConfig);
   }

@@ -356,61 +356,62 @@ export default {
     hasAllCheckItem: { type: Boolean, default: false },
     allCheckItemText: { type: String, default: '全选' },
 
-    isItemDisplay: { type: Boolean, default: true },
-    autoCheckSelectedValue: { type: Boolean, default: true },
-  },
-  data() {
-    return {
-      // @inherit: ChildComponent: this.$options.childName,
-      // @inherit: groupVMs: [],
-      // @inherit: itemVMs: [],
-      // @inherit: selectedVM: undefined,
-      // @inherit: selectedVMs: undefined,
-      focusedVM: undefined, // @inherit: currentMultiple: this.multiple,
-      // @inherit: currentDataSource: undefined,
-      // @inherit: currentLoading: false,
-      currentText: '', // 显示文本
-      filterText: '', // 过滤文本，只有 input 时会改变它
-      filterInputFocused: false,
-      preventBlur: false,
-      inputWidth: 20,
-      popperOpened: false,
-      currentPopperWidth: this.popperWidth || '100%',
-      compositionInputing: false,
-      collapseCounter: 0,
-      selectedDataQueue: [null, null], // 选中不在第一页数据处理
-    };
-  },
-  computed: {
-    currentDisabled() {
-      if (this.disabled) return true;
-      else if (this.emptyDisabled)
-        return this.currentData
-          ? !this.currentData.length
-          : !this.itemVMs.length;
-      else return false;
+        isItemDisplay: { type: Boolean, default: true },
+        autoCheckSelectedValue: { type: Boolean, default: true },
     },
-    filtering() {
-      return {
-        [this.field || this.textField]: {
-          operator: this.matchMethod,
-          value: this.filterText,
-          caseInsensitive: !this.caseSensitive,
+    data() {
+        return {
+            // @inherit: ChildComponent: this.$options.childName,
+            // @inherit: groupVMs: [],
+            // @inherit: itemVMs: [],
+            // @inherit: selectedVM: undefined,
+            // @inherit: selectedVMs: undefined,
+            focusedVM: undefined, // @inherit: currentMultiple: this.multiple,
+            // @inherit: currentDataSource: undefined,
+            // @inherit: currentLoading: false,
+            currentText: '', // 显示文本
+            filterText: '', // 过滤文本，只有 input 时会改变它
+            filterInputFocused: false,
+            preventBlur: false,
+            inputWidth: 20,
+            popperOpened: false,
+            currentPopperWidth: this.popperWidth || '100%',
+            compositionInputing: false,
+            collapseCounter: 0,
+            selectedDataQueue: [null, null], // 选中不在第一页数据处理
+        };
+    },
+    computed: {
+        currentDisabled() {
+            if (this.disabled)
+                return true;
+            else if (this.emptyDisabled)
+                return this.currentData ? !this.currentData.length : !this.itemVMs.length;
+            else
+                return false;
         },
-      };
-    },
-    paging() {
-      if (this.usePagination) {
-        const paging = {};
-        paging.size = this.pageSize === '' ? 50 : this.pageSize;
-        paging.number = paging.number || 1;
-        return paging;
-      } else return undefined;
-    },
-    usePagination() {
-      if (typeof this.pagination === 'undefined') {
-        return this.pageable === true;
-      }
+        filtering() {
+            return {
+                [this.field || this.textField]: {
+                    operator: this.matchMethod,
+                    value: this.filterText,
+                    caseInsensitive: !this.caseSensitive,
+                },
+            };
+        },
+        paging() {
+            if (this.usePagination) {
+                const paging = {};
+                paging.size = this.pageSize === '' ? 50 : this.pageSize;
+                paging.number = paging.number || 1;
+                return paging;
+            } else
+                return undefined;
+        },
+        usePagination() {
+            if (typeof this.pagination === 'undefined') {
+                return this.pageable === true;
+            }
 
       return !!this.pagination;
     },
@@ -424,152 +425,134 @@ export default {
           disabledUnCheckedItemCount++;
       });
 
-      if (!this.hasAllCheckItem) {
-        disabledUnCheckedItemCount = 0;
-      }
-      if (checkedLength === 0) return false;
-      else if (
-        checkedLength + disabledUnCheckedItemCount ===
-        this.itemVMs.length
-      )
-        return true;
-      else return null;
+            if (!this.hasAllCheckItem) {
+                disabledUnCheckedItemCount = 0;
+            }
+            if (checkedLength === 0)
+                return false;
+            else if ((checkedLength + disabledUnCheckedItemCount) === this.itemVMs.length)
+                return true;
+            else
+                return null;
+        },
     },
-  },
-  watch: {
-    filterText(filterText) {
-      this.inputWidth = (filterText || '').length * 12 + 20;
-    },
-    opened(opened) {
-      if (opened === this.popperOpened) return;
-      this.toggle(opened);
-    },
-    appendTo(appendTo) {
-      this.setPopperWidth();
-    },
-    value(value) {
-      if (this.autoCheckSelectedValue) {
-        this.setSelectedDataQueue(value);
-      }
+    watch: {
+        filterText(filterText) {
+            this.inputWidth = (filterText || '').length * 12 + 20;
+        },
+        opened(opened) {
+            if (opened === this.popperOpened)
+                return;
+            this.toggle(opened);
+        },
+        appendTo(appendTo) {
+            this.setPopperWidth();
+        },
+        value(value) {
+            if (this.autoCheckSelectedValue) {
+                this.setSelectedDataQueue(value);
+            }
 
-      if (
-        this.filterable &&
-        !this.multiple &&
-        this.currentDataSource &&
-        Array.isArray(this.currentDataSource.data)
-      ) {
-        const selectedItem = this.currentDataSource.data.find(
-          (d) => this.$at2(d, this.valueField) === value,
-        );
+            if (this.filterable && !this.multiple && this.currentDataSource && Array.isArray(this.currentDataSource.data)) {
+              const selectedItem = this.currentDataSource.data.find((d) => this.$at2(d, this.valueField) === value);
 
-        const filterText = selectedItem
-          ? this.$at2(selectedItem, this.field || this.textField)
-          : '';
-        if (filterText !== this.filterText) {
-          this.filterText = filterText;
-        }
-      }
-    },
-    async selectedDataQueue(value) {
-      if (!this.autoCheckSelectedValue) return;
-
-      // 当value有值，并且已经加载过一次数据才能开启判断
-      // value 和 data 可能都是异步的，所以需要watch
-      // 只有数据源是load函数的情况才需要处理
-      const hasData = (value || []).every((item) => !!item);
-      if (hasData && value.length === 2) {
-        this.loadMoreForSelected();
-      }
-    },
-    popperWidth() {
-      this.setPopperWidth();
-    },
-  },
-  created() {
-    this.$watch('selectedVM', (selectedVM, oldVM) => {
-      if (selectedVM && oldVM && selectedVM.currentText === oldVM.currentText) {
-        return;
-      }
-      if (this.filterable) {
-        if (this.selectedVM && !this.filterInputFocused) {
-          this.filterText = this.selectedVM.currentText;
-        } else if (!this.value && !this.filterInputFocused) {
-          // 响应this.value 的变化 = '' 时处理 清空
-          this.filterText = '';
-        }
-        // blur 事件会处理这个未搜索到置空的问题
-        // this.filterText = ? this.selectedVM.currentText : '';
-      } else {
-        this.currentText = this.selectedVM ? this.selectedVM.currentText : '';
-      }
-    });
-    this.$watch('selectedVMs', (selectedVMs) => {
-      this.currentText = selectedVMs
-        .map((itemVM) => itemVM.currentText)
-        .join(', ');
-      const popperVM = this.$refs.popper;
-      popperVM && popperVM.currentOpened && popperVM.scheduleUpdate();
-      // 计算折叠时，最多能展示几个标签
-      if (this.tagsOverflow === 'collapse' || this.tagsOverflow === 'hidden') {
-        this.$nextTick(() => {
-          this.collapseCounter = 0;
-          const collapseTagWidth = this.tagsOverflow === 'collapse' ? 34 : 0;
-          const marginWidth = 4;
-          let lastAddElementWidth = 0;
-          const inputElWidth = this.inputWidth || 0;
-          // 预留出"+N"的标签宽度
-          let inputWidth =
-            this.$refs.inputOuter.offsetWidth - inputElWidth - collapseTagWidth;
-          // 先计算前N-1个元素长度是否超出输入框
-          for (let i = 0; i < this.selectedVMs.length - 1; i++) {
-            if (this.$refs[`item_${i}`]) {
-              this.$refs[`item_${i}`][0].style.display = 'inline-block';
-              this.$refs[`item_${i}`][0].style['vertical-align'] = 'middle';
-              const itemWidth =
-                this.$refs[`item_${i}`][0].offsetWidth + marginWidth;
-              if (inputWidth - itemWidth < 0) {
-                break;
+              const filterText = selectedItem ? this.$at2(selectedItem, this.field || this.textField) : '';
+              if (filterText !== this.filterText) {
+                this.filterText = filterText;
               }
-              inputWidth -= itemWidth;
-              this.collapseCounter += 1;
             }
-          }
-          // 计算最后一个元素能否加入输入框
-          this.$nextTick(() => {
-            const lastItem = this.$refs[`item_${this.selectedVMs.length - 1}`];
-            if (lastItem) {
-              lastItem[0].style.display = 'inline-block';
-              lastItem[0].style['vertical-align'] = 'middle';
-              lastAddElementWidth = lastItem[0].offsetWidth;
+        },
+        selectedDataQueue(value) {
+            if (!this.autoCheckSelectedValue) return;
+
+            // 当value有值，并且已经加载过一次数据才能开启判断
+            // value 和 data 可能都是异步的，所以需要watch
+            // 只有数据源是load函数的情况才需要处理
+            const hasData = (value || []).every((item) => !!item);
+            if (hasData && value.length === 2) {
+                this.loadMoreForSelected();
             }
-            if (inputWidth > 0 && inputWidth - lastAddElementWidth > 0) {
-              this.collapseCounter += 1;
+        },
+        popperWidth() {
+            this.setPopperWidth();
+        },
+    },
+    created() {
+        this.$watch('selectedVM', (selectedVM, oldVM) => {
+            if (selectedVM && oldVM && selectedVM.currentText === oldVM.currentText) {
+                return;
             }
-            // 隐藏掉超出输入框长度的元素
-            if (
-              this.collapseCounter === this.selectedVMs.length ||
-              this.selectedVMs.length === 1
-            )
-              return;
-            for (
-              let i = this.collapseCounter;
-              i < this.selectedVMs.length;
-              i++
-            ) {
-              this.$nextTick(() => {
-                this.$refs[`item_${i}`][0].style.display = 'none';
-              });
+            if (this.filterable) {
+              if (this.selectedVM && !this.filterInputFocused) {
+                this.filterText = this.selectedVM.currentText;
+              } else if (!this.value && !this.filterInputFocused) {
+                // 响应this.value 的变化 = '' 时处理 清空
+                this.filterText = '';
+              }
+                // blur 事件会处理这个未搜索到置空的问题
+                // this.filterText = ? this.selectedVM.currentText : '';
+            } else {
+                this.currentText = this.selectedVM ? this.selectedVM.currentText : '';
             }
-          });
         });
-      }
-    });
-    this.$on('select', ($event) => {
-      if (this.multiple) {
-        this.preventBlur = true;
-        // 去掉appendTo判断：filterable的多选，会选择后关闭，也需要preventBlur
-        this.preventRootBlur = true;
-      }
+        this.$watch('selectedVMs', (selectedVMs) => {
+            this.currentText = selectedVMs
+                .map((itemVM) => itemVM.currentText)
+                .join(', ');
+            const popperVM = this.$refs.popper;
+            popperVM && popperVM.currentOpened && popperVM.scheduleUpdate();
+            // 计算折叠时，最多能展示几个标签
+            if (this.tagsOverflow === 'collapse' || this.tagsOverflow === 'hidden') {
+                this.$nextTick(() => {
+                    this.collapseCounter = 0;
+                    const collapseTagWidth = this.tagsOverflow === 'collapse' ? 34 : 0;
+                    const marginWidth = 4;
+                    let lastAddElementWidth = 0;
+                    const inputElWidth = this.inputWidth || 0;
+                    // 预留出"+N"的标签宽度
+                    let inputWidth = this.$refs.inputOuter.offsetWidth - inputElWidth - collapseTagWidth;
+                    // 先计算前N-1个元素长度是否超出输入框
+                    for (let i = 0; i < this.selectedVMs.length - 1; i++) {
+                        if (this.$refs[`item_${i}`]) {
+                            this.$refs[`item_${i}`][0].style.display = 'inline-block';
+                            this.$refs[`item_${i}`][0].style['vertical-align'] = 'middle';
+                            const itemWidth = this.$refs[`item_${i}`][0].offsetWidth + marginWidth;
+                            if (inputWidth - itemWidth < 0) {
+                                break;
+                            }
+                            inputWidth -= itemWidth;
+                            this.collapseCounter += 1;
+                        }
+                    }
+                    // 计算最后一个元素能否加入输入框
+                    this.$nextTick(() => {
+                        const lastItem = this.$refs[`item_${this.selectedVMs.length - 1}`];
+                        if (lastItem) {
+                            lastItem[0].style.display = 'inline-block';
+                            lastItem[0].style['vertical-align'] = 'middle';
+                            lastAddElementWidth = lastItem[0].offsetWidth;
+                        }
+                        if (inputWidth > 0 && inputWidth - lastAddElementWidth > 0) {
+                            this.collapseCounter += 1;
+                        }
+                        // 隐藏掉超出输入框长度的元素
+                        if (this.collapseCounter === this.selectedVMs.length || this.selectedVMs.length === 1)
+                            return;
+                        for (let i = this.collapseCounter; i < this.selectedVMs.length; i++) {
+                            this.$nextTick(() => {
+                                this.$refs[`item_${i}`][0].style.display = 'none';
+                            });
+                        }
+                    });
+                });
+            }
+        });
+        this.$on('select', ($event) => {
+            if (this.multiple) {
+                this.preventBlur = true;
+                // 去掉appendTo判断：filterable的多选，会选择后关闭，也需要preventBlur
+                this.preventRootBlur = true;
+            }
 
       if (this.filterable) {
         this.filterText = this.selectedVM ? this.selectedVM.currentText : '';
@@ -586,51 +569,52 @@ export default {
       }
     });
 
-    // 修复单选，点击已选中值无法自动关闭
-    this.$on('click', ($event) => {
-      if (!this.multiple) {
-        this.close();
-      }
-    });
-    if (this.autoCheckSelectedValue) {
-      this.setSelectedDataQueue(this.value);
-    }
-  },
-  mounted() {
-    this.autofocus && this.$el.focus();
-    // 在编辑器里不要打开
-    if (!this.$env.VUE_APP_DESIGNER) this.toggle(this.opened);
-    this.setPopperWidth();
-  },
-  destroyed() {
-    clearTimeout(this.inputBlurTimer);
-    clearTimeout(this.rootBlurTimer);
-    clearTimeout(this.inputDeleteTimer);
-    if (this.loadMoreNoopTimer) {
-      clearTimeout(this.loadMoreNoopTimer);
-    }
-  },
-  methods: {
-    getExtraParams() {
-      return { filterText: this.filterText };
+        // 修复单选，点击已选中值无法自动关闭
+        this.$on('click', ($event) => {
+            if (!this.multiple) {
+                this.close();
+            }
+        });
+        if (this.autoCheckSelectedValue) {
+            this.setSelectedDataQueue(this.value);
+        }
     },
-    getDataSourceOptions() {
-      return {
-        viewMode: 'more',
-        paging: this.paging,
-        remotePaging: this.remotePaging,
-        filtering: this.filtering,
-        remoteFiltering: this.remoteFiltering,
-        getExtraParams: this.getExtraParams,
-        // 新增
-        sorting: this.sorting,
-        remoteSorting: this.remoteSorting,
-      };
+    mounted() {
+        this.autofocus && this.$el.focus();
+        // 在编辑器里不要打开
+        if (!this.$env.VUE_APP_DESIGNER)
+            this.toggle(this.opened);
+        this.setPopperWidth();
     },
-    normalizeDataSource(dataSource) {
-      const options = this.getDataSourceOptions();
-      const isNew = typeof this.pagination !== 'undefined';
-      const Constructor = isNew ? DataSourceNew : DataSource;
+    destroyed() {
+        clearTimeout(this.inputBlurTimer);
+        clearTimeout(this.rootBlurTimer);
+        clearTimeout(this.inputDeleteTimer);
+        if (this.loadMoreNoopTimer) {
+          clearTimeout(this.loadMoreNoopTimer);
+        }
+    },
+    methods: {
+        getExtraParams() {
+            return { filterText: this.filterText };
+        },
+        getDataSourceOptions() {
+            return {
+                viewMode: 'more',
+                paging: this.paging,
+                remotePaging: this.remotePaging,
+                filtering: this.filtering,
+                remoteFiltering: this.remoteFiltering,
+                getExtraParams: this.getExtraParams,
+                // 新增
+                sorting: this.sorting,
+                remoteSorting: this.remoteSorting,
+            };
+        },
+        normalizeDataSource(dataSource) {
+            const options = this.getDataSourceOptions();
+            const isNew = typeof this.pagination !== 'undefined';
+            const Constructor = isNew ? DataSourceNew : DataSource;
 
       if (
         dataSource instanceof DataSource ||
@@ -753,254 +737,272 @@ export default {
         this.$nextTick(() => this.loadMoreNoopOnOpen());
       }
 
-      this.$emit('open', $event, this);
-      this.$emit('update:opened', true);
-    },
-    onClose($event) {
-      if (this.loadMoreNoopTimer) {
-        clearTimeout(this.loadMoreNoopTimer);
-      }
-      this.popperOpened = false;
-      this.focusedVM = undefined;
-      this.preventRootBlur = false;
-      this.preventBlur = false;
-      clearTimeout(this.inputBlurTimer);
-      clearTimeout(this.rootBlurTimer);
-      this.$emit('close', $event, this);
-      this.$emit('update:opened', false);
-    },
-    fastLoad(more, keep) {
-      if (!this.currentDataSource) return;
-      this.currentDataSource.filter(this.filtering);
-      return this.currentDataSource.mustRemote()
-        ? this.debouncedLoad(more, keep)
-        : this.load(more, keep);
-    },
-    load(more, keep) {
-      const dataSource = this.currentDataSource;
-      if (!dataSource) return;
-      // if (this.currentLoading)
-      //     return Promise.resolve(); // @TODO: dataSource 的多次 promise 必须串行
-      // return this.promiseSequence = this.promiseSequence.then(() => {
-      this.currentLoading = true;
-      const loadToken = (this.loadToken = +new Date());
-      // console.log('filterText', this.filterText, loadToken);
-      return dataSource[more ? 'loadMore' : 'load']()
-        .then((data) => {
-          // console.log('loaded', this.loadToken, loadToken);
-          if (this.loadToken !== loadToken) return Promise.resolve();
-          this.currentLoading = false;
-          this.ensureSelectedInItemVMs();
-          // 选中数据不在第一页处理
-          // 只需要初始的时候处理，这里存储数据用于判断是否是第一次加载数据
-          if (this.autoCheckSelectedValue && !this.selectedDataQueue[1]) {
-            this.selectedDataQueue.splice(1, 1, data);
-          }
-          this.$refs.popper.currentOpened && this.$refs.popper.scheduleUpdate();
-          return data;
-        })
-        .catch(() => (this.currentLoading = false)); // });
-    },
-    onFocus(e) {
-      this.$emit('focus', e, this);
-    },
-    onInput(value) {
-      if (!this.filterable) {
-        return;
-      }
-      this.filterInputFocused = true;
-      this.currentText = value; // value.split(',')
-      if (this.$emitPrevent('before-filter', { filterText: value }, this))
-        return;
-      this.filterText = value;
-      this.fastLoad(false, true);
-      this.open();
-      this.hasFilter = true; // 控制blur时是否重置列表，避免每次blur都重置
-    },
-    onBlur(e) {
-      this.filterInputFocused = false;
-      if (!this.filterable) {
-        return; // 这边必须要用 setTimeout，$nextTick 也不行，需要保证在 @select 之后完成
-      }
-
-      this.inputBlurTimer = setTimeout(() => {
-        if (this.preventBlur) return (this.preventBlur = false);
-        this.selectByText(this.filterText);
-        if (this.filterText === '' && !this.selectedVM) {
-          this.$emit('blur', e);
-        }
-        this.close();
-        if (this.hasFilter) {
-          this.resetFilterList();
-          this.hasFilter = false;
-        }
-      }, 200);
-    },
-    onRootBlur(e) {
-      this.rootBlurTimer = setTimeout(() => {
-        if ((this.$refs.input && this.$refs.input.focused) || this.preventBlur)
-          return;
-        if (this.preventRootBlur) return (this.preventRootBlur = false);
-        this.close();
-        this.$emit('blur', e);
-      }, 400);
-    },
-    selectByText(text) {
-      if (!text) return;
-      if (this.multiple) {
-        const oldVMs = this.selectedVMs;
-        const selectedVM = this.itemVMs.find(
-          (itemVM) => itemVM.currentText === text,
-        ); // 如果没有匹配项则恢复到上一个状态
-        if (!selectedVM && text) {
-          if (this.autoComplete) {
-            this.prependItem(text);
-            this.$nextTick(() => this.select(this.itemVMs[0], true));
-          } else {
-            this.filterText = '';
-            this.currentText = this.filterText;
-            this.fastLoad(); // ensure
-          }
-        } else {
-          if (oldVMs.some((itemVM) => itemVM.currentText === text)) {
-            this.filterText = '';
-            this.fastLoad(); // ensure
-            return;
-          }
-          this.select(selectedVM, true);
-        }
-      } else {
-        const oldVM = this.selectedVM;
-        if (!oldVM && !text) return;
-        else if (oldVM && text === oldVM.currentText)
-          return this.ensureSelectedInItemVMs();
-        const selectedVM = this.itemVMs.find(
-          (itemVM) => itemVM.currentText === text,
-        ); // 如果没有匹配项则恢复到上一个状态
-        if (!selectedVM && text) {
-          if (this.autoComplete) {
-            this.prependItem(text);
-            this.$nextTick(() => this.select(this.itemVMs[0], false));
-          } else {
-            this.filterText = oldVM ? oldVM.currentText : '';
-            if (this.filterText === '') {
-              this.currentText = this.filterText;
+            this.$emit('open', $event, this);
+            this.$emit('update:opened', true);
+        },
+        onClose($event) {
+            if (this.loadMoreNoopTimer) {
+              clearTimeout(this.loadMoreNoopTimer);
             }
-            this.fastLoad(); // ensure
-          }
-        } else this.select(selectedVM, false);
-      }
-    },
-    prependItem(text) {
-      this.currentDataSource.prepend({ text, value: text });
-    },
-    onEnter(event) {
-      // 当footer里的输入框按enter的时候，阻止行为
-      if (this.$refs.footer && this.$refs.footer.contains(event.target)) return;
-      if (this.focusedVM) this.select(this.focusedVM);
-      this.popperOpened ? this.close() : this.open();
-    },
-    onInputDelete() {
-      // 增加setTimeout原因：没有setTimeout，该函数会在onInput前执行，filterText会差一个字母
-      // multiple下，第一次删除为空时不希望处理selectedVMs，所以不用放到setTimeout里
-      if (!this.multiple) {
-        clearTimeout(this.inputDeleteTimer);
-        this.inputDeleteTimer = setTimeout(() => {
-          if (this.filterable && this.filterText === '') {
-            this.selectedVM = undefined; // 清空时清除下拉选中项
-            const value = undefined;
-            this.$emit('input', value, this);
-            this.$emit('update:value', value, this);
-          }
-        }, 0);
-      } else {
-        if (this.filterable && this.filterText === '') {
-          if (!this.selectedVMs.length) return;
-          const lastItemVM = this.selectedVMs[this.selectedVMs.length - 1];
-          this.select(lastItemVM, false);
-          this.resetFilterList();
-        }
-      }
-    },
-    clear() {
-      this.preventBlur = true;
-      this.currentText = '';
-      if (this.multiple) {
-        const oldValue = this.value;
-        let value = [];
-        if (this.converter) {
-          value = this.currentConverter.get(value);
-        }
-        if (this.$emitPrevent('before-clear', { oldValue, value }, this))
-          return;
-        this.selectedVMs.forEach((itemVM) => (itemVM.currentSelected = false));
-        this.selectedVMs = [];
-        this.filterText = '';
-        this.fastLoad();
-        this.$emit('input', value, this);
-        this.$emit('update:value', value, this);
-        this.$emit('clear', { oldValue, value }, this);
-      } else {
-        const oldValue = this.value;
-        let value;
-        if (this.converter) {
-          value = this.currentConverter.get(value);
-        }
-        if (this.$emitPrevent('before-clear', { oldValue, value }, this))
-          return;
-        this.selectedVM = undefined;
-        this.filterText = '';
-        this.fastLoad();
-        this.$emit('input', this.handleEmptyValue(value), this);
-        this.$emit('update:value', this.handleEmptyValue( value ), this);
-        this.$emit('clear', { oldValue, value:this.handleEmptyValue( value ) }, this);
-      }
-      this.focus();
-      this.close();
-    },
-    focus() {
-      this.preventBlur = true;
-      if (this.filterable) {
-        this.$refs.input.focus();
-      } else {
-        this.$emit('focus');
-      }
-    },
-    blur() {
-      if (this.filterable) {
-        this.$refs.input.blur();
-      } else {
-        this.$emit('blur');
-      }
-    },
-    setPopperWidth() {
-      if (this.appendTo === 'body') {
-        this.currentPopperWidth = this.popperWidth
-          ? this.popperWidth
-          : this.$el && this.$el.offsetWidth + 'px';
-      } else {
-        this.currentPopperWidth = this.popperWidth || '100%';
-      }
-    },
-    rootFocus() {
-      this.$el.focus();
-    },
-    resetFilterList() {
-      if (this.multiple) {
-        this.fastLoad();
-      }
-    },
-    removeTag(itemVm, flag) {
-      this.select(itemVm, flag);
-      this.resetFilterList();
-      this.$emit('removetag', itemVm);
-      this.preventRootBlur = false;
-      this.preventBlur = false;
-      this.rootFocus();
-    },
-    onScroll(e) {
-      this.hasScroll = true;
-      this.throttledVirtualScroll(e);
+            this.popperOpened = false;
+            this.focusedVM = undefined;
+            this.preventRootBlur = false;
+            this.preventBlur = false;
+            clearTimeout(this.inputBlurTimer);
+            clearTimeout(this.rootBlurTimer);
+            this.$emit('close', $event, this);
+            this.$emit('update:opened', false);
+        },
+        fastLoad(more, keep) {
+            if (!this.currentDataSource)
+                return;
+            this.currentDataSource.filter(this.filtering);
+            return this.currentDataSource.mustRemote() ? this.debouncedLoad(more, keep) : this.load(more, keep);
+        },
+        load(more, keep) {
+            const dataSource = this.currentDataSource;
+            if (!dataSource)
+                return;
+            // if (this.currentLoading)
+            //     return Promise.resolve(); // @TODO: dataSource 的多次 promise 必须串行
+            // return this.promiseSequence = this.promiseSequence.then(() => {
+            this.currentLoading = true;
+            const loadToken = this.loadToken = +new Date();
+            // console.log('filterText', this.filterText, loadToken);
+            return dataSource[more ? 'loadMore' : 'load']()
+                .then((data) => {
+                    // console.log('loaded', this.loadToken, loadToken);
+                    if (this.loadToken !== loadToken)
+                        return Promise.resolve();
+                    this.currentLoading = false;
+                    this.ensureSelectedInItemVMs();
+                    // 选中数据不在第一页处理
+                    // 只需要初始的时候处理，这里存储数据用于判断是否是第一次加载数据
+                    if (this.autoCheckSelectedValue && !this.selectedDataQueue[1]) {
+                        this.selectedDataQueue.splice(1, 1, data);
+                    }
+                    this.$refs.popper.currentOpened
+                        && this.$refs.popper.scheduleUpdate();
+                    return data;
+                })
+                .catch(() => (this.currentLoading = false)); // });
+        },
+        onFocus(e) {
+            this.$emit('focus', e, this);
+        },
+        onInput(value) {
+            if (!this.filterable) {
+              return;
+            }
+            this.filterInputFocused = true;
+            this.currentText = value; // value.split(',')
+            if (this.$emitPrevent('before-filter', { filterText: value }, this))
+                return;
+            this.filterText = value;
+            this.fastLoad(false, true);
+            this.open();
+            this.hasFilter = true; // 控制blur时是否重置列表，避免每次blur都重置
+        },
+        onBlur(e) {
+            this.filterInputFocused = false;
+            if (!this.filterable)
+                return; // 这边必须要用 setTimeout，$nextTick 也不行，需要保证在 @select 之后完成
+            this.inputBlurTimer = setTimeout(() => {
+                if (this.preventBlur)
+                    return (this.preventBlur = false);
+                this.selectByText(this.filterText);
+                if (this.filterText === '' && !this.selectedVM) {
+                    this.$emit('blur', e);
+                }
+                this.close();
+                if (this.hasFilter) {
+                    this.resetFilterList();
+                    this.hasFilter = false;
+                }
+            }, 200);
+        },
+        onRootBlur(e) {
+            this.rootBlurTimer = setTimeout(() => {
+                if (this.$refs.input && this.$refs.input.focused || this.preventBlur)
+                    return;
+                if (this.preventRootBlur)
+                    return (this.preventRootBlur = false);
+                this.close();
+                this.$emit('blur', e);
+            }, 400);
+        },
+        selectByText(text) {
+            if (!text)
+                return;
+            if (this.multiple) {
+                const oldVMs = this.selectedVMs;
+                const selectedVM = this.itemVMs.find(
+                    (itemVM) => itemVM.currentText === text,
+                ); // 如果没有匹配项则恢复到上一个状态
+                if (!selectedVM && text) {
+                    if (this.autoComplete) {
+                        this.prependItem(text);
+                        this.$nextTick(() =>
+                            this.select(this.itemVMs[0], true),
+                        );
+                    } else {
+                        this.filterText = '';
+                        this.currentText = this.filterText;
+                        this.fastLoad(); // ensure
+                    }
+                } else {
+                    if (oldVMs.some((itemVM) => itemVM.currentText === text)) {
+                        this.filterText = '';
+                        this.fastLoad(); // ensure
+                        return;
+                    }
+                    this.select(selectedVM, true);
+                }
+            } else {
+                const oldVM = this.selectedVM;
+                if (!oldVM && !text)
+                    return;
+                else if (oldVM && text === oldVM.currentText)
+                    return this.ensureSelectedInItemVMs();
+                const selectedVM = this.itemVMs.find(
+                    (itemVM) => itemVM.currentText === text,
+                ); // 如果没有匹配项则恢复到上一个状态
+                if (!selectedVM && text) {
+                    if (this.autoComplete) {
+                        this.prependItem(text);
+                        this.$nextTick(() =>
+                            this.select(this.itemVMs[0], false),
+                        );
+                    } else {
+                        this.filterText = oldVM ? oldVM.currentText : '';
+                        if (this.filterText === '') {
+                            this.currentText = this.filterText;
+                        }
+                        this.fastLoad(); // ensure
+                    }
+                } else
+                    this.select(selectedVM, false);
+            }
+        },
+        prependItem(text) {
+            this.currentDataSource.prepend({ text, value: text });
+        },
+        onEnter(event) {
+            // 当footer里的输入框按enter的时候，阻止行为
+            if (this.$refs.footer && this.$refs.footer.contains(event.target))
+                return;
+            if (this.focusedVM)
+                this.select(this.focusedVM);
+            this.popperOpened ? this.close() : this.open();
+        },
+        onInputDelete() {
+            // 增加setTimeout原因：没有setTimeout，该函数会在onInput前执行，filterText会差一个字母
+            // multiple下，第一次删除为空时不希望处理selectedVMs，所以不用放到setTimeout里
+            if (!this.multiple) {
+                clearTimeout(this.inputDeleteTimer);
+                this.inputDeleteTimer = setTimeout(() => {
+                    if (this.filterable && this.filterText === '') {
+                        this.selectedVM = undefined; // 清空时清除下拉选中项
+                        const value = undefined;
+                        this.$emit('input', value, this);
+                        this.$emit('update:value', value, this);
+                    }
+                }, 0);
+            } else {
+                if (this.filterable && this.filterText === '') {
+                    if (!this.selectedVMs.length)
+                        return;
+                    const lastItemVM = this.selectedVMs[
+                        this.selectedVMs.length - 1
+                    ];
+                    this.select(lastItemVM, false);
+                    this.resetFilterList();
+                }
+            }
+        },
+        clear() {
+            this.preventBlur = true;
+            this.currentText = '';
+            if (this.multiple) {
+                const oldValue = this.value;
+                let value = [];
+                if (this.converter) {
+                    value = this.currentConverter.get(value);
+                }
+                if (
+                    this.$emitPrevent('before-clear', { oldValue, value }, this)
+                )
+                    return;
+                this.selectedVMs.forEach(
+                    (itemVM) => (itemVM.currentSelected = false),
+                );
+                this.selectedVMs = [];
+                this.filterText = '';
+                this.fastLoad();
+                this.$emit('input', value, this);
+                this.$emit('update:value', value, this);
+                this.$emit('clear', { oldValue, value }, this);
+            } else {
+                const oldValue = this.value;
+                let value;
+                if (this.converter) {
+                    value = this.currentConverter.get(value);
+                }
+                if (
+                    this.$emitPrevent('before-clear', { oldValue, value }, this)
+                )
+                    return;
+                this.selectedVM = undefined;
+                this.filterText = '';
+                this.fastLoad();
+                this.$emit('input', value, this);
+                this.$emit('update:value', value, this);
+                this.$emit('clear', { oldValue, value }, this);
+            }
+            this.focus();
+            this.close();
+        },
+        focus() {
+            this.preventBlur = true;
+            if (this.filterable) {
+              this.$refs.input.focus();
+            } else {
+              this.$emit('focus');
+            }
+        },
+        blur() {
+            if (this.filterable) {
+              this.$refs.input.blur();
+            } else {
+              this.$emit('blur');
+            }
+        },
+        setPopperWidth() {
+            if (this.appendTo === 'body') {
+                this.currentPopperWidth = this.popperWidth ? this.popperWidth : this.$el && (this.$el.offsetWidth + 'px');
+            } else {
+                this.currentPopperWidth = this.popperWidth || '100%';
+            }
+        },
+        rootFocus() {
+            this.$el.focus();
+        },
+        resetFilterList() {
+            if (this.multiple) {
+                this.fastLoad();
+            }
+        },
+        removeTag(itemVm, flag) {
+            this.select(itemVm, flag);
+            this.resetFilterList();
+            this.$emit('removetag', itemVm);
+            this.preventRootBlur = false;
+            this.preventBlur = false;
+            this.rootFocus();
+        },
+        onScroll(e) {
+            this.hasScroll = true;
+            this.throttledVirtualScroll(e);
 
       if (typeof this.pagination !== 'undefined') {
         if (!this.pagination || !this.$options.isSelect) {
