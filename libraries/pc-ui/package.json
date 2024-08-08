@@ -53,6 +53,7 @@
     "resize-observer-polyfill": "^1.5.1",
     "swiper": "^7.4.1",
     "vue-cropper": "^0.5.8",
+    "whatwg-fetch": "3.6.2",
     "xlsx-js-style": "^1.2.0",
     "yargs": "^16.2.0"
   },
@@ -62,8 +63,8 @@
     "@lcap/builder": "workspace:*",
     "@lcap/storybook-vue-vite": "workspace:*",
     "@lcap/vite-plugin-vue2": "workspace:*",
-    "@nasl/types": "0.1.9-alpha",
     "@nasl/ast-mini": "3.9.0-beta",
+    "@nasl/types": "0.1.9-alpha",
     "@storybook/addon-essentials": "^7.6.17",
     "@storybook/addon-interactions": "^7.6.17",
     "@storybook/addon-links": "^7.6.17",
