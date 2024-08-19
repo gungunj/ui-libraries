@@ -38,9 +38,9 @@
   "dependencies": {
     "@joskii/jflow-core": "^0.1.22",
     "@joskii/jflow-vue2-plugin": "^0.1.1",
-    "@popperjs/core": "^2.10.2",
-    "@lcap/vue2-utils": "workspace:*",
     "@lcap/validator": "workspace:*",
+    "@lcap/vue2-utils": "workspace:*",
+    "@popperjs/core": "^2.10.2",
     "animate.css": "^4.1.1",
     "countup.js": "^1.9.3",
     "dayjs": "^1.10.7",
@@ -54,7 +54,8 @@
     "swiper": "^7.4.1",
     "vue-cropper": "^0.5.8",
     "xlsx-js-style": "^1.2.0",
-    "yargs": "^16.2.0"
+    "yargs": "^16.2.0",
+    "zustand-vue": "1.0.0-beta.24"
   },
   "devDependencies": {
     "@babel/plugin-proposal-nullish-coalescing-operator": "^7.18.6",
@@ -62,8 +63,8 @@
     "@lcap/builder": "workspace:*",
     "@lcap/storybook-vue-vite": "workspace:*",
     "@lcap/vite-plugin-vue2": "workspace:*",
-    "@nasl/types": "0.1.9-alpha",
     "@nasl/ast-mini": "3.9.0-beta",
+    "@nasl/types": "0.1.9-alpha",
     "@storybook/addon-essentials": "^7.6.17",
     "@storybook/addon-interactions": "^7.6.17",
     "@storybook/addon-links": "^7.6.17",
