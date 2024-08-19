@@ -9,12 +9,16 @@ export { ElTable, ElTableColumn } from './el-table';
 export { ElResult } from './el-result';
 export { ElRow, ElCol } from './el-row';
 export {
-  ElContainer, ElHeader, ElAside, ElFooter, ElMain,
+  ElContainer,
+  ElHeader,
+  ElAside,
+  ElFooter,
+  ElMain,
 } from './el-container';
 export { ElLink } from './el-link';
 export { ElRadio, ElRadioGroup, ElRadioButton } from './el-radio';
 export { ElCheckbox, ElCheckboxGroup, ElCheckboxButton } from './el-checkbox';
-export { ElInput, ElAutocomplete } from './el-input';
+export { ElInput, ElAutocomplete } from './el-input/index';
 export { ElInputNumber } from './el-input-number';
 export { ElSelect, ElOptionGroup, ElOption } from './el-select';
 export { ElCascader, ElCascaderPanel } from './el-cascader';

@@ -37,7 +37,11 @@ export const registerComponent = (
   if (!methodNames) {
     methodNames = [];
   }
-  const useBearStore = create((set) => ({}));
+  let commit: any;
+  const useBearStore = create((set) => {
+    commit = set;
+    return {};
+  });
   return {
     name: baseComponent.name,
     inheritAttrs: false,
@@ -77,6 +81,7 @@ export const registerComponent = (
           $methodNames: methodNames,
           $_slots: self.$scopedSlots,
           $store: useBearStore,
+          $commit: commit,
         },
         attrs: self.$attrs,
         scopedSlots: self.$scopedSlots,

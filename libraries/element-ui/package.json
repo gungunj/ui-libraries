@@ -29,18 +29,19 @@
     "README.md"
   ],
   "dependencies": {
-    "@vue/babel-helper-vue-jsx-merge-props": "^1.4.0",
-    "@vue/composition-api": "^1.7.2",
     "@joskii/jflow-core": "^0.1.22",
     "@joskii/jflow-vue2-plugin": "^0.1.1",
     "@lcap/validator": "workspace:*",
     "@lcap/vue2-utils": "workspace:*",
+    "@vue/babel-helper-vue-jsx-merge-props": "^1.4.0",
+    "@vue/composition-api": "^1.7.2",
     "element-ui": "^2.15.14",
     "lodash": "^4.17.21",
     "online-svg-icon-vue2": "^1.2.3",
     "remixicon": "^4.2.0",
+    "swiper": "^7.4.1",
     "uid": "^2.0.2",
-    "swiper": "^7.4.1"
+    "zustand-vue": "1.0.0-beta.24"
   },
   "devDependencies": {
     "@babel/plugin-proposal-nullish-coalescing-operator": "^7.18.6",

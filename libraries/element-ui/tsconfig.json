@@ -30,7 +30,7 @@
       "@components/*": ["./src/components/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.tsx", "ide/**/*.ts"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "ide/**/*.ts", "src/components/el-input/index.jsx"],
   "references": [
   ]
 }
