@@ -40,7 +40,10 @@ export const registerComponent = (
   let commit: any;
   const useBearStore = create((set) => {
     commit = set;
-    return {};
+    return {
+      disabled: false,
+      name: 'bear',
+    };
   });
   return {
     name: baseComponent.name,
@@ -51,6 +54,7 @@ export const registerComponent = (
     data() {
       return {
         renderKey: uid(),
+        // sotre: useBearStore(),
       };
     },
     created() {
@@ -60,6 +64,11 @@ export const registerComponent = (
         plugin: { ...pluginOption, ...self.plugin },
       });
     },
+    computed: {
+      sotre() {
+        return useBearStore();
+      },
+    },
     watch: {
       plugin(v) {
         const self = this as any;
@@ -67,6 +76,12 @@ export const registerComponent = (
         // 重新生成key rerender 组件
         this.renderKey = uid();
       },
+      // sotre: {
+      //   handler(v) {
+      //     console.log(v, 'storeee');
+      //   },
+      //   deep: true,
+      // },
     },
     render(h) {
       const self = this as any;
@@ -80,7 +95,7 @@ export const registerComponent = (
           $nativeEvents: nativeEvents,
           $methodNames: methodNames,
           $_slots: self.$scopedSlots,
-          $store: useBearStore,
+          $store: this.sotre,
           $commit: commit,
         },
         attrs: self.$attrs,

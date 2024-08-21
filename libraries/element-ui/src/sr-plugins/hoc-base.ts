@@ -295,7 +295,23 @@ function mergeRefMap(...refMaps: HocBaseRefMap[]) {
 
   return map;
 }
-
+function handleHookResult(result, ctx, h) {
+  let { listener, render, slot } = ctx;
+  if (typeof result?.listener === 'function') {
+    listener = result.listener(ctx.listener);
+  }
+  if (typeof result?.render === 'function') {
+    render = result.render(h, ctx.render);
+  }
+  if (typeof result?.slot === 'function') {
+    slot = result.slot(ctx.slot);
+  }
+  return {
+    listener,
+    render,
+    slot,
+  };
+}
 const toRenderState = (
   map: Record<MapGetKey, any>,
   keys: string[],
@@ -368,7 +384,7 @@ export default defineComponent({
       default: () => [],
     },
     $store: {
-      type: Function,
+      type: Object,
       default: () => ({}),
     },
     $commit: {
@@ -383,49 +399,94 @@ export default defineComponent({
       $store,
       $commit,
     } = props;
-    const store = computed(() => $store());
-    // const compName = baseComponent.name;
-    const propKeys = getPropKeys(baseComponent);
-    const keys = manger.getPluginPropKeys(propKeys);
+    // const propKeys = getPropKeys(baseComponent);
     const vueInstance: any = ctx.root;
     const isDesigner = inject('VUE_APP_DESIGNER', false)
       || (vueInstance.$env && vueInstance.$env.VUE_APP_DESIGNER);
-    let refMap = useInitRefMap(keys);
-    const { callSetupEnd, createPropsControl } = usePropMap(props, ctx);
     const setups = manger.getPluginSetup(isDesigner);
-
-    setups.forEach((setupFn) => {
-      const momentRefMap = mergeRefMap(refMap);
-      const mergeMap = setupFn.call(this, createPropsControl(momentRefMap), {
-        h: vueInstance.$createElement,
-        $router: vueInstance.$router,
-        isDesigner,
-        setupContext: ctx,
-      });
-
-      if (!mergeMap) {
-        return;
-      }
-
-      setMergeMapSymbol(mergeMap, momentRefMap);
-      refMap = mergeRefMap(momentRefMap, mergeMap as any);
+    const dispatch = (name) => $store[name]();
+    const dfineAction = (name, action) => $commit({
+      [name]: (...args) => action(
+        { props: ctx.attrs, state: $store },
+        { commit: $commit },
+        ...args,
+      ),
     });
+    const state = setups.reduce(
+      (pre, fn) => handleHookResult(
+        fn(
+          { props, $store },
+          {
+            setupContext: ctx,
+            $commit,
+            dispatch,
+            dfineAction,
+          },
+        ),
+        pre,
+        vueInstance.$createElement,
+      ),
+      {
+        listener: {},
+        render: baseComponent,
+        slot: ctx.slots,
+      },
+    );
+    console.log(state);
+    // setups.forEach((setupFn) => {
+    //   const mergeMap = setupFn.call(
+    //     this,
+    //     { props: ctx.attrs, $store },
+    //     {
+    //       h: vueInstance.$createElement,
+    //       $router: vueInstance.$router,
+    //       isDesigner,
+    //       setupContext: ctx,
+    //       $commit,
+    //       dispatch: (name) => {
+    //         $store[name]();
+    //       },
+    //       dfineAction: (name, action) => {
+    //         $commit({
+    //           [name]: (...args) => {
+    //             action(
+    //               { props: ctx.attrs, state: $store },
+    //               { commit: $commit },
+    //               ...args,
+    //             );
+    //           },
+    //         });
+    //       },
+    //     },
+    //   );
 
-    callSetupEnd(refMap);
-    const renderFns: any[] = refMap[$render];
+    //   // if (!mergeMap) {
+    //   //   return;
+    //   // }
+
+    //   // setMergeMapSymbol(mergeMap, momentRefMap);
+    //   // refMap = mergeRefMap(momentRefMap, mergeMap as any);
+    // });
+
+    // callSetupEnd(refMap);
+    // const renderFns: any[] = refMap[$render];
 
     return {
-      $state: toRenderState(refMap, keys, baseComponent, propKeys),
-      $render(resultVNode, h, context) {
-        if (renderFns.length === 0) {
-          return resultVNode;
-        }
+      $state: { ...ctx.attrs, ...$store },
+      // $store,
+      render: state.render,
+      listeners: state.listeners,
+      slot: state.slot,
+      // $render(resultVNode, h, context) {
+      //   if (renderFns.length === 0) {
+      //     return resultVNode;
+      //   }
 
-        return renderFns.reduce(
-          (value, renderFn = (v) => v) => renderFn.call(this, value, h, context),
-          resultVNode,
-        );
-      },
+      //   return renderFns.reduce(
+      //     (value, renderFn = (v) => v) => renderFn.call(this, value, h, context),
+      //     resultVNode,
+      //   );
+      // },
     };
   },
   render(h) {
@@ -433,17 +494,17 @@ export default defineComponent({
       return null;
     }
 
-    const {
-      props,
-      listeners,
-      slots,
-      deletePropsKeys,
-      allPropsKeys,
-      propKeys,
-      baseComponent,
-    } = this.$state;
+    // const {
+    //   props,
+    //   listeners,
+    //   slots,
+    //   deletePropsKeys,
+    //   allPropsKeys,
+    //   propKeys,
+    //   baseComponent,
+    // } = this.$state;
 
-    const scopedSlots: any = { ...this.$scopedSlots, ...getRefValueMap(slots) };
+    const scopedSlots: any = { ...this.$scopedSlots, ...this.slot };
 
     const childrenNodes: VNode[] = [];
     (this.$slotNames as string[]).forEach((slotName) => {
@@ -470,17 +531,22 @@ export default defineComponent({
       }
     });
 
-    const refProps: any = { ...this.$attrs, ...getRefValueMap(props) };
-    const refListeners = { ...this.$listeners, ...getRefValueMap(listeners) };
+    // const refProps: any = {
+    //   ...this.$attrs,
+    //   ...getRefValueMap(props),
+    //   ...this.$store,
+    // };
+    const refListeners = { ...this.$listeners, ...this.listeners };
 
     const resultVNode = h(
-      baseComponent,
+      this.render,
       {
-        ...splitPropsAndAttrs(refProps, propKeys, allPropsKeys),
+        ...this.$state,
+        // ...splitPropsAndAttrs(refProps, propKeys, allPropsKeys),
         ...splitListeners(
           refListeners,
           this.$nativeEvents as string[],
-          getEventKeys(deletePropsKeys),
+          getEventKeys([]),
         ),
         scopedSlots,
         ref: '$base',
@@ -488,11 +554,12 @@ export default defineComponent({
       childrenNodes,
     );
 
-    return this.$render(resultVNode, h, {
-      props: refProps,
-      listeners: refListeners,
-      scopedSlots,
-      childrenNodes,
-    });
+    return resultVNode;
+    // return this.$render(resultVNode, h, {
+    //   props: { this.,...this.$state },
+    //   listeners: refListeners,
+    //   scopedSlots,
+    //   childrenNodes,
+    // });
   },
 });

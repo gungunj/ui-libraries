@@ -6,7 +6,7 @@ import { $deletePropList, $render, $ref } from './constants';
 
 export declare type Slot = (...args: any[]) => VNode[];
 declare type InternalSlots = {
-    [name: string]: Slot | undefined;
+  [name: string]: Slot | undefined;
 };
 
 export declare type Slots = Readonly<InternalSlots>;
@@ -24,13 +24,17 @@ export interface PluginSetupRef {
 }
 
 export interface PluginSetupFunctionReturn {
-  [key: string]: Ref<any> | ComputedRef<any> | any,
+  [key: string]: Ref<any> | ComputedRef<any> | any;
   [$deletePropList]?: string[];
   [$render]?: (resultVNode: VNode, h: CreateElement, context: any) => VNode;
   [$ref]?: PluginSetupRef;
 }
 
-export type MapGetKey = string | typeof $ref | typeof $render | typeof $deletePropList;
+export type MapGetKey =
+  | string
+  | typeof $ref
+  | typeof $render
+  | typeof $deletePropList;
 export interface MapGet {
   get<T extends any>(key: MapGetKey): T;
   get<T extends any[]>(key: Array<MapGetKey>): T;
@@ -42,7 +46,10 @@ export interface MapGet {
   useComputed<T>(prop: string[], compute?: (...v: any[]) => T): ComputedRef<T>;
 }
 
-export type PluginSetupFunction = (props: Readonly<MapGet>, ctx: PluginSetUpContext) => PluginSetupFunctionReturn | void;
+export type PluginSetupFunction = (
+  props: Readonly<MapGet>,
+  ctx: PluginSetUpContext,
+) => PluginSetupFunctionReturn | void;
 
 export interface NaslComponentPluginOptions {
   /**
@@ -87,30 +94,33 @@ export default class PluginManager {
   }
 
   setPlugin(plugin: PluginMap) {
-    const pluginArray = this.plugins.concat(Object.keys(plugin).map((name) => ({ order: 4, name, ...plugin[name] })));
-    const sortPlugin = _.orderBy(pluginArray, ['order'], ['asc']);
-    const unionPlugin = _.unionBy(sortPlugin, 'name');
-    this.plugins = unionPlugin;
+    // const pluginArray = this.plugins.concat(
+    //   Object.keys(plugin).map((name) => ({ order: 4, name, ...plugin[name] })),
+    // );
+    // const sortPlugin = _.orderBy(pluginArray, ['order'], ['asc']);
+    // const unionPlugin = _.unionBy(sortPlugin, 'name');
+    this.plugins = plugin;
   }
 
   getPluginSetup = (isDesigner) => {
-    const pluginSetups = this.plugins.filter((op) => {
-      if (!op || typeof op.setup !== 'function') {
-        return false;
-      }
+    return Object.values(this.plugins);
+    // const pluginSetups = this.plugins.filter((op) => {
+    //   if (!op || typeof op.setup !== 'function') {
+    //     return false;
+    //   }
 
-      if (!isDesigner && op.onlyUseIDE) {
-        return false;
-      }
+    //   if (!isDesigner && op.onlyUseIDE) {
+    //     return false;
+    //   }
 
-      return true;
-    }).map((op) => op.setup);
-    return pluginSetups;
+    //   return true;
+    // }).map((op) => op.setup);
+    // return pluginSetups;
   };
 
   getPluginPropKeys = (propKeys: string[]) => {
     const keys = [...propKeys];
-    const ps = this.plugins.map((op) => (op.props || [])).flat();
+    const ps = this.plugins.map((op) => op.props || []).flat();
 
     ps.forEach((k) => {
       if (keys.indexOf(k) === -1) {
